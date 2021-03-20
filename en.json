@@ -1,0 +1,10 @@
+[
+    {
+        "id": "TodoNotFound",
+        "translation": "Todo not found."
+    },
+    {
+        "id": "UserNotFound",
+        "translation": "User not found."
+    }
+]

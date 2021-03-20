@@ -1,0 +1,10 @@
+[
+    {
+        "id": "TodoNotFound",
+        "translation": "Tarea no encontrada."
+    },
+    {
+        "id": "UserNotFound",
+        "translation": "Usuario no encontrado."
+    }
+]
