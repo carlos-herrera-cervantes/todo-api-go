@@ -1,67 +1,53 @@
 package middlewares
 
 import (
-	"context"
+	"encoding/json"
+	"net/http"
 	"todo-api-fiber/async"
-	db "todo-api-fiber/db"
 	"todo-api-fiber/locales"
 	collection "todo-api-fiber/models"
+	"todo-api-fiber/repositories"
 
-	"github.com/gofiber/fiber"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/gorilla/mux"
 )
 
-var userCollection = db.Connect().Collection("users")
+var userRepository = repositories.BaseRepository{Collection: "users"}
 
 // Verifies if the user exists by the ID specified
-func ExistsUserByIdAsync(ctx *fiber.Ctx) {
-	future := async.Invoke(func() interface{} {
-		var user collection.User
+func ExistsUserByIdAsync(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		future := async.Invoke(func() interface{} {
+			var user collection.User
+			id := mux.Vars(r)["id"]
 
-		id, _ := primitive.ObjectIDFromHex(ctx.Params("id"))
-		result := userCollection.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&user)
+			singleResult := userRepository.GetByIdAsync(id)
+			error := singleResult.Decode(&user)
 
-		return result
-	})
+			if error != nil {
+				return nil
+			}
 
-	lang := ctx.Get("Accept-Language")
-	message := locales.GetLocalizer(lang, "UserNotFound")
-	val := future.Await()
+			return user
+		})
 
-	if val != nil {
-		ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+		val := future.Await()
+
+		if val != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		lang := r.Header.Get("Accept-Language")
+		message := locales.GetLocalizer(lang, "UserNotFound")
+
+		w.WriteHeader(http.StatusNotFound)
+
+		errorResponse := map[string]interface{}{
 			"status":  false,
 			"code":    "UserNotFound",
 			"message": message,
-		})
+		}
+		json.NewEncoder(w).Encode(errorResponse)
 		return
-	}
-
-	ctx.Next()
-}
-
-// Verifies if the user exists by specific filter criteria
-func ExistsUserByFilterAsync(ctx *fiber.Ctx, filter bson.M) {
-	future := async.Invoke(func() interface{} {
-		var user collection.User
-		result := userCollection.FindOne(context.TODO(), filter).Decode(&user)
-
-		return result
 	})
-
-	lang := ctx.Get("Accept-Language")
-	message := locales.GetLocalizer(lang, "UserNotFound")
-	val := future.Await()
-
-	if val != nil {
-		ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"status":  false,
-			"code":    "UserNotFound",
-			"message": message,
-		})
-		return
-	}
-
-	ctx.Next()
 }

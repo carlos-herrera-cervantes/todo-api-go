@@ -1,19 +1,33 @@
 package routes
 
 import (
+	"net/http"
 	"todo-api-fiber/controllers"
 	"todo-api-fiber/middlewares"
 
-	"github.com/gofiber/fiber"
+	"github.com/gorilla/mux"
 )
 
-// Sets the endpoints for to-do model
-func ConfigTodosRoutes(v1 fiber.Router) {
-	v1.Use("/todos/:id", middlewares.ExistsTodoById)
+// Returns the routes for todo model
+func GetTodoRoutes(base *mux.Router) {
+	todo := base.PathPrefix("/todos").Subrouter()
+	todo.HandleFunc("", controllers.GetTodosAsync).Methods(http.MethodGet)
+	todo.HandleFunc("", controllers.CreateTodoAsync).Methods(http.MethodPost)
+	todo.Use(middlewares.IsAuthenticated)
+	todo.Use(superAdminAuthorizer)
 
-	v1.Get("/todos", controllers.GetTodosAsync)
-	v1.Get("/todos/:id", controllers.GetTodoByIdAsync)
-	v1.Post("/todos", controllers.CreateTodoAsync)
-	v1.Patch("/todos/:id", controllers.UpdateTodoByIdAsync)
-	v1.Delete("/todos/:id", controllers.DeleteTodoByIdAsync)
+	todoMe := base.PathPrefix("/todos/me").Subrouter()
+	todoMe.HandleFunc("", controllers.GetTodosByUserAsync).Methods(http.MethodGet)
+	todoMe.HandleFunc("", controllers.CreateTodoByUserAsync).Methods(http.MethodPost)
+	todoMe.Use(middlewares.IsAuthenticated)
+	todoMe.Use(allAuthorizer)
+
+	todoPath := base.PathPrefix("/todos/{id}").Subrouter()
+	todoPath.HandleFunc("", controllers.GetTodoByIdAsync).Methods(http.MethodGet)
+	todoPath.HandleFunc("", controllers.UpdateTodoByIdAsync).Methods(http.MethodPatch)
+	todoPath.HandleFunc("", controllers.DeleteTodoByIdAsync).Methods(http.MethodDelete)
+	todoPath.Use(middlewares.IsAuthenticated)
+	todoPath.Use(middlewares.ExistsTodoById)
+	todoPath.Use(middlewares.CheckUserTodo)
+	todoPath.Use(allAuthorizer)
 }

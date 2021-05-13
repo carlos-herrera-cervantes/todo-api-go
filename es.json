@@ -6,5 +6,29 @@
     {
         "id": "UserNotFound",
         "translation": "Usuario no encontrado."
+    },
+    {
+        "id": "MissingToken",
+        "translation": "Token inválido."
+    },
+    {
+        "id": "InvalidPermissions",
+        "translation": "No tienes permisos suficientes para realizar esta acción."
+    },
+    {
+        "id": "InvalidCredentials",
+        "translation": "Usuario o contraseña inválidos."
+    },
+    {
+        "id": "InternalServerError",
+        "translation": "Error deconocido de servidor."
+    },
+    {
+        "id": "InvalidOperation",
+        "translation": "Excepción de operación no válida."
+    },
+    {
+        "id": "InvalidToken",
+        "translation": "Token de acceso inválido."
     }
 ]
