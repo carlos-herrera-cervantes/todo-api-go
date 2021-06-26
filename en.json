@@ -6,5 +6,29 @@
     {
         "id": "UserNotFound",
         "translation": "User not found."
+    },
+    {
+        "id": "MissingToken",
+        "translation": "Missing json web token."
+    },
+    {
+        "id": "InvalidPermissions",
+        "translation": "You don't have sufficient permissions to do this action."
+    },
+    {
+        "id": "InvalidCredentials",
+        "translation": "Invalid email or password."
+    },
+    {
+        "id": "InternalServerError",
+        "translation": "Unknown server error."
+    },
+    {
+        "id": "InvalidOperation",
+        "translation": "Invalid operation exception."
+    },
+    {
+        "id": "InvalidToken",
+        "translation": "Invalid access token."
     }
 ]

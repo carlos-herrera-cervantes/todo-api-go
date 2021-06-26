@@ -1,19 +1,37 @@
 package routes
 
 import (
+	"net/http"
 	"todo-api-fiber/controllers"
+	"todo-api-fiber/enums"
 	"todo-api-fiber/middlewares"
 
-	"github.com/gofiber/fiber"
+	"github.com/gorilla/mux"
 )
 
-// Sets the endpoints for user model
-func ConfigUserRoutes(v1 fiber.Router) {
-	v1.Use("/users/:id", middlewares.ExistsUserByIdAsync)
+var onlySuperAdmin = map[interface{}]bool{
+	enums.SuperAdmin: true,
+}
 
-	v1.Get("/users", controllers.GetUsersAsync)
-	v1.Get("/users/:id", controllers.GetUserByIdAsync)
-	v1.Post("/users", controllers.CreateUserAsync)
-	v1.Patch("/users/:id", controllers.UpdateUserByIdAsync)
-	v1.Delete("/users/:id", controllers.DeleteUserByIdAsync)
+var all = map[interface{}]bool{
+	enums.All: true,
+}
+
+var superAdminAuthorizer = middlewares.IsAuthorized(onlySuperAdmin)
+var allAuthorizer = middlewares.IsAuthorized(all)
+
+// Returns the routes for user model
+func GetUserRoutes(base *mux.Router) {
+	user := base.PathPrefix("/users").Subrouter()
+	user.HandleFunc("", controllers.GetUsersAsync).Methods(http.MethodGet)
+	user.Use(middlewares.IsAuthenticated)
+	user.Use(superAdminAuthorizer)
+
+	userPath := base.PathPrefix("/users/{id}").Subrouter()
+	userPath.HandleFunc("", controllers.GetUserByIdAsync).Methods(http.MethodGet)
+	userPath.HandleFunc("", controllers.UpdateUserByIdAsync).Methods(http.MethodPatch)
+	userPath.HandleFunc("", controllers.DeleteUserByIdAsync).Methods(http.MethodDelete)
+	userPath.Use(middlewares.IsAuthenticated)
+	userPath.Use(allAuthorizer)
+	userPath.Use(middlewares.ExistsUserByIdAsync)
 }
